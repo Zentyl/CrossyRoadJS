@@ -1,0 +1,30 @@
+* {
+    box-sizing: border-box;
+}
+
+body {
+    text-align: end;
+    font-size: 1rem;
+    font-family: Verdana;
+    color: #195e86;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    height: 95vh;
+    justify-content: center;
+    align-items: center;
+    background-color: #092230;
+}
+
+.title {
+    font-size: 1.5rem;
+    margin-right: 1rem;
+}
+
+.controls {
+    margin-right: 1rem;
+}
+
+.canvas {
+    width: 100%;
+}
