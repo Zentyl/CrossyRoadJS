@@ -4,10 +4,11 @@ window.onload = () => { // uruchomienie gry przy załadowaniu okna strony
 
 class Game { // klasa gry
     backgrounds = []
-    backgroundSpeed = 20; // prędkość przesuwania się tła
+    gameSpeed = 1;
+    carSpeed = 2;
+    trainSpeed = 20;
     cars = [];
     trains = [];
-    gameSpeed = 1; // prędkość poruszania się przeszkod w strone gracza
 
     init = () => { // konstruktor
         this.canvas = document.querySelector("canvas");
@@ -25,10 +26,10 @@ class Game { // klasa gry
         this.playerX = this.canvas.width / 2 - this.player.width;
         this.playerY = this.canvas.height - this.player.height * 2 + 12;
 
-        this.carRight = new Image();
-        this.carRight.src = "img/cars/carright.png"; // przeszkoda
-        this.carLeft = new Image();
-        this.carLeft.src = "img/cars/carleft.png"; // przeszkoda
+        this.carDown = new Image();
+        this.carDown.src = "img/cars/down.png"; // przeszkoda
+        this.carUp = new Image();
+        this.carUp.src = "img/cars/up.png"; // przeszkoda
         this.carStreet = new Image();
         this.carStreet.src = "img/cars/street.png";
         this.train = new Image();
@@ -37,11 +38,12 @@ class Game { // klasa gry
         this.trainIncoming.src = "img/train/incoming.png";
         this.trainTrack = new Image();
         this.trainTrack.src = "img/train/track.png";
+        this.trainAlert = new Image();
+        this.trainAlert.src = "img/train/alert.png";
 
         let x1 = 0;
         let y1 = this.canvas.height - this.background.height;
 
-        this.drawBoard();
         this.startGame();
     };
 
@@ -132,30 +134,25 @@ class Game { // klasa gry
         }
         update();
         this.addBackgrounds();
-        // this.addCars();
         this.createRandomArray();
         this.getRandomObstacle();
     };
 
     updateGame = () => { // aktualizowanie gry
-        this.gameOver();
-        if (!this.isOver) {
             this.drawBackgrounds();
-
             this.drawCars();
             this.drawTrains();
             this.drawPlayer();
             this.checkCollision();
             this.checkMove();
-            this.drawBoard();
             this.ctx.fillStyle = "white";
             this.ctx.font = "20px Verdana";
             this.ctx.fillText("Score: " + this.score, 80, 55);
-        }
     };
 
     drawPlayer = () => { // rysowanie postaci gracza oraz jej fizyka
         // rysowanie postaci gracza
+        this.playerY += this.gameSpeed;
         this.ctx.drawImage(this.player, this.playerX, this.playerY);
     };
 
@@ -175,12 +172,9 @@ class Game { // klasa gry
     drawBackgrounds = () => { // rysowanie tła
         this.clearCanvas();
         const backgroundsToDraw = [...this.backgrounds]; // tła oczekujące na narysowanie
-        console.log(this.backgrounds);
         backgroundsToDraw.forEach(background => {
             this.ctx.drawImage(background.img, background.x, background.y); // rysowanie tła
             background.y += this.gameSpeed;
-
-
 
             if (background.y == 0) {
                 this.backgrounds.shift(); // usuwanie tła z tablicy
@@ -188,14 +182,14 @@ class Game { // klasa gry
 
             }
 
-            if (background.y % 300 == 0) {
+            if (background.y % 320 == 0) {
                 this.getRandomObstacle();
             }
         });
     };
 
     addTrains = () => { // tworzenie przeszkod
-        let x = this.canvas.width - this.carRight.width;
+        let x = this.canvas.width - this.carDown.width;
         let y = 64 * (-1);
 
         this.trains.push({ // tablica z przeszkodami
@@ -219,50 +213,70 @@ class Game { // klasa gry
                 y: y,
                 width: this.trainTrack.width,
                 height: this.trainTrack.height
-            }
+            },
+            alert: {
+                img: this.trainAlert,
+                x: x,
+                y: y,
+                width: this.trainAlert.width,
+                height: this.trainAlert.height
+            },
+            spawn: Math.random() * (320 - 128) + 128
         });
     };
 
     drawTrains = () => { // rysowanie przeszkód
         const trainsToDraw = [...this.trains]; // przeszkody oczekujace na narysowanie
         trainsToDraw.forEach(train => {
-
-            train.incoming.y += this.gameSpeed;
-            train.riding.y = train.incoming.y;
-            console.log(train.riding.x);
-            this.ctx.drawImage(train.incoming.img, 0, train.incoming.y);
-            if (train.riding.y >= 128) {
-                this.ctx.drawImage(train.track.img, 0, train.riding.y);
-                if (train.riding.x > train.riding.width * (-1)) {
-                    this.ctx.drawImage(train.riding.img, train.riding.x, train.riding.y);
-                    train.riding.x -= this.backgroundSpeed * 2;
+            train.track.y += this.gameSpeed;
+            if (train.track.y < train.spawn - 32) {
+                this.ctx.drawImage(train.incoming.img, 0, train.track.y);
+            }
+            else if (train.track.y >= train.spawn - 32 && train.track.y < train.spawn) {
+                this.ctx.drawImage(train.alert.img, 0, train.track.y);
+            }
+            else {
+                this.ctx.drawImage(train.track.img, 0, train.track.y);
+                if (train.riding.x > train.riding.width * (-1)) { // rysowanie pociagu tylko wtedy gdy go widac
+                    this.ctx.drawImage(train.riding.img, train.riding.x, train.track.y);
+                    train.riding.x -= this.trainSpeed;
+                    if (
+                        (this.playerX + this.playerWidth >= train.riding.x && this.playerX < train.riding.x + train.riding.width)
+                        && ((this.playerY >= train.riding.y) && this.playerY + this.playerHeight < train.riding.y + train.riding.height )
+                    ) { // też do zrobienia Y
+                        console.log()
+                        this.restartGame();
+                    }
                 }
             }
-
-            if (train.riding.y == this.canvas.height + train.riding.height) {
+            if (train.track.y == this.canvas.height + train.riding.height) {
                 this.trains.shift(); // usuwanie przeszkód z tablicy
             }
+            if (this.playerY > train.track.y - 64 && this.playerY < train.track.y + 64) { // jeżeli postać jest blisko pola pociągu ale nie jest w calosci to go przeteleportuj na pole
+                this.playerY = train.track.y;
+            }
+
         });
     };
 
     addCars = () => { // tworzenie przeszkod
-        let x = this.canvas.width - this.carRight.width;
+        let x = this.canvas.width - this.carDown.width;
         let y = 64 * (-1);
 
         this.cars.push({ // tablica z przeszkodami
-            left: {
-                img: this.carLeft,
-                x: 0,
+            up: {
+                img: this.carUp,
+                x: x - Math.random() * (100 - (-100)) + (-100),
                 y: y,
-                width: this.carLeft.width,
-                height: this.carLeft.height
+                width: this.carDown.width,
+                height: this.carDown.height
             },
-            right: {
-                img: this.carRight,
-                x: x,
+            down: {
+                img: this.carDown,
+                x: Math.random() * (200 - (-200)) + (-200),
                 y: y,
-                width: this.carRight.width,
-                height: this.carRight.height
+                width: this.carUp.width,
+                height: this.carUp.height
             },
             street: {
                 img: this.carStreet,
@@ -276,24 +290,41 @@ class Game { // klasa gry
 
     drawCars = () => { // rysowanie przeszkód
         const carsToDraw = [...this.cars]; // przeszkody oczekujace na narysowanie
-
         carsToDraw.forEach(car => {
-            this.ctx.drawImage(car.street.img, 0, car.left.y - car.street.height); // lewa
-            this.ctx.drawImage(car.left.img, car.left.x, car.left.y - car.street.height);
-            this.ctx.drawImage(car.street.img, 0, car.right.y); // prawa
-            this.ctx.drawImage(car.right.img, car.right.x, car.right.y);
+            this.ctx.drawImage(car.street.img, 0, car.down.y); // prawa
+            this.ctx.drawImage(car.down.img, car.down.x, car.down.y);
+            this.ctx.drawImage(car.street.img, 0, car.up.y - car.street.height); // lewa
+            this.ctx.drawImage(car.up.img, car.up.x, car.up.y - car.street.height);
 
-            car.left.x += this.backgroundSpeed / 10;
-            car.left.y += this.gameSpeed;
-            car.right.x -= this.backgroundSpeed / 10;
-            car.right.y += this.gameSpeed;
+            car.down.x += this.carSpeed;
+            car.down.y += this.gameSpeed;
+            car.up.x -= this.carSpeed;
+            car.up.y += this.gameSpeed;
 
-            if (car.x == 50) {
-                this.addCars(); // dodawanie przeszkód do tablicy
+            if (
+                (this.playerX + this.playerWidth >= car.down.x && this.playerX < car.down.x + car.down.width)
+                && ((this.playerY == car.down.y - 2))
+            ) {
+                console.log("ŚMIERĆ DOWN");
             }
-            if (car.right.y == this.canvas.height + car.right.height) {
+
+            if (
+                (this.playerX + this.playerWidth >= car.up.x && this.playerX < car.up.x + car.up.width)
+                && ((this.playerY + this.playerHeight < car.up.y) && (this.playerY >= car.up.y / 2))
+            ) {
+                console.log("ŚMIERĆ TOP"); // trzeba zrobic Y
+            }
+
+            if (car.down.y == this.canvas.height + car.down.height) {
                 this.cars.shift();
             }
+
+            if (this.playerY > car.down.y - 64 && this.playerY < car.down.y + 2) {
+                this.playerY = car.down.y - 2;
+            }
+            // if(this.playerY > car.down.y - 64 && this.playerY < car.down.y + 64) {
+            //     this.playerY = car.up.y;
+            // }
         });
     };
 
@@ -320,20 +351,6 @@ class Game { // klasa gry
         })
     };
 
-    gameOver = () => { // funkcja kończąca grę
-        if (this.isOver) {
-            this.clearCanvas();
-            this.checkHighscore();
-            this.ctx.drawImage(this.background, 0, 0);
-            // wyswietlanie komunikatu końcowego
-            this.ctx.fillStyle = "white";
-            this.ctx.font = "20px Verdana";
-            this.ctx.fillText("Score: " + this.score, this.canvas.width / 2.5, this.canvas.height / 2 - 70);
-            this.ctx.fillText("High score: " + this.getHighScore(), this.canvas.width / 2.5, this.canvas.height / 2 - 40);
-            this.ctx.fillText("Press Enter to restart", this.canvas.width / 2.5, this.canvas.height / 2 - 10);
-        }
-    };
-
     clearCanvas = () => { // czyszczenie canvy
         this.ctx.fillStyle = "white";
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
@@ -346,10 +363,8 @@ class Game { // klasa gry
         this.cars = [];
         this.trains = [];
         this.addBackgrounds();
-        // this.addCars();
         this.getRandomObstacle();
-        this.isOver = false;
-        this.gameSpeed = 1;
+        this.gameSpeed = 2;
     };
 }
 
