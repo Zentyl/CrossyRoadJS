@@ -228,6 +228,7 @@ class Game { // klasa gry
     drawTrains = () => { // rysowanie przeszkód
         const trainsToDraw = [...this.trains]; // przeszkody oczekujace na narysowanie
         trainsToDraw.forEach(train => {
+
             train.track.y += this.gameSpeed;
             if (train.track.y < train.spawn - 32) {
                 this.ctx.drawImage(train.incoming.img, 0, train.track.y);
@@ -240,11 +241,14 @@ class Game { // klasa gry
                 if (train.riding.x > train.riding.width * (-1)) { // rysowanie pociagu tylko wtedy gdy go widac
                     this.ctx.drawImage(train.riding.img, train.riding.x, train.track.y);
                     train.riding.x -= this.trainSpeed;
+
                     if (
-                        (this.playerX + this.playerWidth >= train.riding.x && this.playerX < train.riding.x + train.riding.width)
-                        && ((this.playerY >= train.riding.y) && this.playerY + this.playerHeight < train.riding.y + train.riding.height )
-                    ) { // też do zrobienia Y
-                        console.log()
+                        
+                        ((this.playerX + this.playerWidth >= train.riding.x) && (this.playerX < train.riding.x + train.riding.width))
+                        && ((this.playerY >= train.track.y) && (this.playerY + 2 < train.track.y + train.riding.height))
+                    
+                    ) {
+                        console.log("ŚMIERĆ POCIĄG");
                         this.restartGame();
                     }
                 }
@@ -300,19 +304,21 @@ class Game { // klasa gry
             car.down.y += this.gameSpeed;
             car.up.x -= this.carSpeed;
             car.up.y += this.gameSpeed;
-
+            console.log(this.playerY + 64);
+            console.log("car: " + car.up.y);
             if (
                 (this.playerX + this.playerWidth >= car.down.x && this.playerX < car.down.x + car.down.width)
                 && ((this.playerY == car.down.y - 2))
             ) {
                 console.log("ŚMIERĆ DOWN");
+                this.restartGame();
             }
-
             if (
-                (this.playerX + this.playerWidth >= car.up.x && this.playerX < car.up.x + car.up.width)
-                && ((this.playerY + this.playerHeight < car.up.y) && (this.playerY >= car.up.y / 2))
+                ((this.playerX + this.playerWidth*2 >= car.up.x) && (this.playerX < car.up.x + car.up.width))
+                && ((this.playerY  == car.up.y - 66))
             ) {
                 console.log("ŚMIERĆ TOP"); // trzeba zrobic Y
+                this.restartGame();
             }
 
             if (car.down.y == this.canvas.height + car.down.height) {
