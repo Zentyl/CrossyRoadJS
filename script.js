@@ -4,13 +4,14 @@ window.onload = () => { // uruchomienie gry przy załadowaniu okna strony
 
 class Game { // klasa gry
     backgrounds = []
-    gameSpeed = 1;
+    gameSpeed = 3;
     lilySpeed = 20;
     trainSpeed = 20;
     carSpeed = 2;
     lilies = [];
     trains = [];
     cars = [];
+    score = 0;
 
 
     init = () => { // konstruktor
@@ -74,10 +75,10 @@ class Game { // klasa gry
         document.addEventListener(
             "keydown",
             (e) => {
+                if (e.repeat) { return }
                 if (e.defaultPrevented) {
                     return; // Do nothing if the event was already processed
                 }
-
                 switch (e.key) {
                     case "ArrowDown":
                         this.player.y += 64;
@@ -178,7 +179,7 @@ class Game { // klasa gry
                 this.addBackgrounds(); // dodawanie tła do tablicy
             }
 
-            if (background.y % 320 == 0) {
+            if (background.y % 300 == 0) {
                 this.getRandomObstacle();
             }
         });
@@ -224,8 +225,9 @@ class Game { // klasa gry
                 y: y,
                 x2: x2,
                 width: this.lilyRiverImg.width,
-                height: this.lilyRiverImg.height
+                height: this.lilyRiverImg.height,
             },
+            point: true
         });
     }
 
@@ -238,6 +240,13 @@ class Game { // klasa gry
 
             lily.floating.y += this.gameSpeed;
 
+            if (this.player.y < lily.floating.y - 2) {
+                if (lily.point) {
+                    this.score ++
+                    lily.point = false;
+                }    
+            }
+            
             if (
                 !((this.player.x == lily.floating.x1 - 2 || this.player.x == lily.floating.x2 - 2))
                 && (this.player.y == lily.floating.y - 2)
@@ -247,7 +256,7 @@ class Game { // klasa gry
             }
 
             if (lily.floating.y == this.canvas.height + lily.floating.height) {
-                this.lilys.shift();
+                this.lilies.shift();
             }
 
             if (this.player.y > lily.floating.y - 64 && this.player.y < lily.floating.y + 62) {
@@ -291,7 +300,8 @@ class Game { // klasa gry
                 width: this.trainAlertImg.width,
                 height: this.trainAlertImg.height
             },
-            spawn: Math.random() * (320 - 128) + 128
+            spawn: Math.random() * (320 - 128) + 128,
+            point: true
         });
     };
 
@@ -300,6 +310,14 @@ class Game { // klasa gry
         trainsToDraw.forEach(train => {
 
             train.track.y += this.gameSpeed;
+
+            if (this.player.y < train.track.y - 2) {
+                if (train.point) {
+                    this.score ++
+                    train.point = false;
+                }    
+            }
+
             if (train.track.y < train.spawn - 32) {
                 this.ctx.drawImage(train.incoming.img, 0, train.track.y);
             }
@@ -326,7 +344,7 @@ class Game { // klasa gry
             if (train.track.y == this.canvas.height + train.riding.height) {
                 this.trains.shift(); // usuwanie przeszkód z tablicy
             }
-            if (this.player.y > train.track.y - 64 && this.player.y < train.track.y + 64) { // jeżeli postać jest blisko pola pociągu ale nie jest w calosci to go przeteleportuj na pole
+            if (this.player.y > train.track.y - 64 && this.player.y < train.track.y + 62) { // jeżeli postać jest blisko pola pociągu ale nie jest w calosci to go przeteleportuj na pole
                 this.player.y = train.track.y;
             }
 
@@ -358,7 +376,8 @@ class Game { // klasa gry
                 y: y,
                 width: this.carStreetImg.width,
                 height: this.carStreetImg.height
-            }
+            },
+            point: true
         });
     };
 
@@ -374,6 +393,14 @@ class Game { // klasa gry
             car.down.y += this.gameSpeed;
             car.up.x -= this.carSpeed;
             car.up.y += this.gameSpeed;
+
+            if (this.player.y < car.up.y - 64) {
+                if (car.point) {
+                    this.score ++
+                    car.point = false;
+                }    
+            }
+
             if (
                 (this.player.x + this.player.width >= car.down.x && this.player.x < car.down.x + car.down.width)
                 && ((this.player.y == car.down.y))
@@ -382,7 +409,7 @@ class Game { // klasa gry
                 this.restartGame();
             }
             if (
-                ((this.player.x + this.player.width * 2 >= car.up.x) && (this.player.x < car.up.x + car.up.width))
+                ((this.player.x + this.player.width * 2 >= car.up.x) && (this.player.x < car.up.x + car.up.width / 2))
                 && ((this.player.y == car.up.y - 64))
             ) {
                 console.log("ŚMIERĆ TOP"); // trzeba zrobic Y
@@ -395,6 +422,10 @@ class Game { // klasa gry
 
             if (this.player.y > car.down.y - 56 && this.player.y < car.down.y + 6) {
                 this.player.y = car.down.y;
+            }
+
+            if (this.player.y <= car.down.y && this.player.y > car.up.y) {
+                this.player.y = car.up.y - 64;
             }
         });
     };
@@ -413,7 +444,7 @@ class Game { // klasa gry
         this.cars = [];
         this.addBackgrounds();
         this.getRandomObstacle();
-        this.gameSpeed = 2;
+        this.gameSpeed = 3;
     };
 }
 
