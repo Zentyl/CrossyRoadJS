@@ -14,6 +14,7 @@ class Game { // klasa gry
     score = 0;
 
 
+
     init = () => { // konstruktor
         this.canvas = document.querySelector("canvas");
         this.ctx = this.canvas.getContext("2d");
@@ -52,9 +53,8 @@ class Game { // klasa gry
             width: this.playerImg.width * 0.5,
             height: this.playerImg.height * 0.5,
             x: this.canvas.width / 2 - this.playerImg.width,
-            y: this.canvas.height - this.playerImg.height * 2 + 12
+            y: this.canvas.height - this.playerImg.height * 2 - 128
         };
-
 
         this.startGame();
     };
@@ -67,6 +67,7 @@ class Game { // klasa gry
         ];
     }
 
+    
     getRandomObstacle = () => {
         this.randomObstacles[Math.floor(Math.random() * this.randomObstacles.length)]();
     }
@@ -178,7 +179,7 @@ class Game { // klasa gry
                 this.backgrounds.shift(); // usuwanie tła z tablicy
                 this.addBackgrounds(); // dodawanie tła do tablicy
             }
-
+            // hard difficulty 150 zamiast 300
             if (background.y % 300 == 0) {
                 this.getRandomObstacle();
             }
@@ -242,11 +243,11 @@ class Game { // klasa gry
 
             if (this.player.y < lily.floating.y - 2) {
                 if (lily.point) {
-                    this.score ++
+                    this.score++
                     lily.point = false;
-                }    
+                }
             }
-            
+
             if (
                 !((this.player.x == lily.floating.x1 - 2 || this.player.x == lily.floating.x2 - 2))
                 && (this.player.y == lily.floating.y - 2)
@@ -255,13 +256,15 @@ class Game { // klasa gry
                 this.restartGame();
             }
 
+            if (this.player.y > lily.floating.y - 34 && this.player.y < lily.floating.y + 32) {
+                this.player.y = lily.floating.y - 4;
+            }
+
             if (lily.floating.y == this.canvas.height + lily.floating.height) {
                 this.lilies.shift();
             }
 
-            if (this.player.y > lily.floating.y - 64 && this.player.y < lily.floating.y + 62) {
-                this.player.y = lily.floating.y - 2;
-            }
+
         });
 
     };
@@ -313,9 +316,9 @@ class Game { // klasa gry
 
             if (this.player.y < train.track.y - 2) {
                 if (train.point) {
-                    this.score ++
+                    this.score++
                     train.point = false;
-                }    
+                }
             }
 
             if (train.track.y < train.spawn - 32) {
@@ -344,7 +347,10 @@ class Game { // klasa gry
             if (train.track.y == this.canvas.height + train.riding.height) {
                 this.trains.shift(); // usuwanie przeszkód z tablicy
             }
-            if (this.player.y > train.track.y - 64 && this.player.y < train.track.y + 62) { // jeżeli postać jest blisko pola pociągu ale nie jest w calosci to go przeteleportuj na pole
+
+            console.log("player: " + this.player.y);
+            console.log(train.track.y);
+            if (this.player.y > train.track.y - 34 && this.player.y < train.track.y + 32) { // jeżeli postać jest blisko pola pociągu ale nie jest w calosci to go przeteleportuj na pole
                 this.player.y = train.track.y;
             }
 
@@ -396,9 +402,9 @@ class Game { // klasa gry
 
             if (this.player.y < car.up.y - 64) {
                 if (car.point) {
-                    this.score ++
+                    this.score++
                     car.point = false;
-                }    
+                }
             }
 
             if (
@@ -415,18 +421,15 @@ class Game { // klasa gry
                 console.log("ŚMIERĆ TOP"); // trzeba zrobic Y
                 this.restartGame();
             }
-
+            if (this.player.y > car.down.y - 44 && this.player.y < car.down.y + 42) {
+                this.player.y = car.down.y;
+            }
             if (car.down.y == this.canvas.height + car.down.height) {
                 this.cars.shift();
             }
 
-            if (this.player.y > car.down.y - 56 && this.player.y < car.down.y + 6) {
-                this.player.y = car.down.y;
-            }
 
-            if (this.player.y <= car.down.y && this.player.y > car.up.y) {
-                this.player.y = car.up.y - 64;
-            }
+
         });
     };
 
@@ -437,7 +440,7 @@ class Game { // klasa gry
 
     restartGame = () => { // restartowanie gry
         this.score = 0;
-        this.player.y = this.canvas.height - this.playerImg.height * 2 + 12;
+        this.player.y = this.canvas.height - this.playerImg.height * 2 - 128;
         this.backgrounds = [];
         this.lilies = [];
         this.trains = [];
