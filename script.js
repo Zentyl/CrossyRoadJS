@@ -8,11 +8,14 @@ class Game { // klasa gry
     lilySpeed = 20;
     trainSpeed = 20;
     carSpeed = 2;
+    newHighScore = false;
     lilies = [];
     trains = [];
     cars = [];
-    score = 0;
-
+    isStarted = false; // zmienna sprawdzająca czy gra zostala rozpoczęta
+    isOver = false; // zmienna sprawdzająca czy gra zostala skończona
+    spawnRate = 300;
+    difficulty = "Normal";
 
 
     init = () => { // konstruktor
@@ -27,6 +30,8 @@ class Game { // klasa gry
 
         this.playerImg = new Image();
         this.playerImg.src = "img/player/playerup.png"; // postać gracza
+        this.playerStartX = this.canvas.width / 2 - this.playerImg.width;
+        this.playerStartY = this.canvas.height - this.playerImg.height * 2 - 128;
 
         this.lilyRiverImg = new Image();
         this.lilyRiverImg.src = "img/lily/river.png";
@@ -52,8 +57,9 @@ class Game { // klasa gry
         this.player = {
             width: this.playerImg.width * 0.5,
             height: this.playerImg.height * 0.5,
-            x: this.canvas.width / 2 - this.playerImg.width,
-            y: this.canvas.height - this.playerImg.height * 2 - 128
+            x: this.playerStartX,
+            y: this.playerStartY
+
         };
 
         this.startGame();
@@ -66,10 +72,60 @@ class Game { // klasa gry
             this.addCars
         ];
     }
+    titleScreen = () => { // ekran tytułowy gry
+        if (!this.isStarted) { // wyświetlanie ekranu tytułowego dopóki gracz nie wciśnie Enter
+            this.clearCanvas();
+            this.ctx.drawImage(this.background, 0, 0);
+            if (this.difficulty == "Normal") {
+                this.ctx.fillStyle = "white";
+            }
+            else
+                this.ctx.fillStyle = "red";
+            this.ctx.font = "20px Verdana";
+            this.ctx.fillText("Difficulty: " + this.difficulty, this.canvas.width / 2.5, this.canvas.height / 2 - 70);
+            this.ctx.fillText("High score: ", this.canvas.width / 2.5, this.canvas.height / 2 - 40);
+            this.ctx.fillText("Press Enter to start", this.canvas.width / 2.5, this.canvas.height / 2 - 10);
+        }
+    };
 
-    
     getRandomObstacle = () => {
         this.randomObstacles[Math.floor(Math.random() * this.randomObstacles.length)]();
+    }
+
+    getHighScore = () => { // pobierz zapisany lokalnie rekord i go zwróć
+        if (this.difficulty == "Normal") {
+            this.highScore = localStorage.getItem('FroggerNormalHighScore');
+            if (this.highScore) {
+                return parseInt(this.highScore);
+            }
+            else {
+                return 0;
+            }
+        }
+        else {
+            this.highScore = localStorage.getItem('FroggerHardHighScore');
+            if (this.highScore) {
+                return parseInt(this.highScore);
+            }
+            else {
+                return 0;
+            }
+        }
+    }
+
+    checkHighscore = () => { // sprawdź czy został ustanowiony nowy rekord i go zapisz lokalnie
+        if (this.difficulty == "Normal") {
+            if (this.getHighScore() < this.score) {
+                localStorage.setItem('FroggerNormalHighScore', this.score);
+                this.newHighScore = true;
+            }
+        }
+        else {
+            if (this.getHighScore() < this.score) {
+                localStorage.setItem('FroggerHardHighScore', this.score);
+                this.newHighScore = true;
+            }
+        }
     }
 
     checkMove = () => {
@@ -82,23 +138,37 @@ class Game { // klasa gry
                 }
                 switch (e.key) {
                     case "ArrowDown":
+
                         this.player.y += 64;
                         this.playerImg.src = "img/player/playerdown.png";
                         break;
+
                     case "ArrowUp":
                         this.player.y -= 64;
                         this.playerImg.src = "img/player/playerup.png";
                         break;
                     case "ArrowLeft":
+
                         this.player.x -= 64;
                         this.playerImg.src = "img/player/playerleft.png";
                         break;
+
                     case "ArrowRight":
                         this.player.x += 64;
                         this.playerImg.src = "img/player/playerright.png";
                         break;
                     case "Enter":
                         this.restartGame();
+                        break;
+                    case "e":
+                        if (this.isOver) {
+                            this.changeDifficulty();
+                        }
+                        break;
+                    case "E":
+                        if (this.isOver) {
+                                this.changeDifficulty();
+                        }
                         break;
                     default:
                         return; // Quit when this doesn't handle the key event.
@@ -109,6 +179,29 @@ class Game { // klasa gry
             true,
         );
 
+    }
+
+    checkWallsCollision = () => {
+        if (
+            (this.player.x < 10) // lewo
+            || (this.player.x + this.player.width > this.canvas.width) // prawo
+            || (this.player.y + this.player.height < 16 * (-1)) // góra
+            || (this.player.y > this.canvas.height + 16) // dół
+        ) {
+            this.isOver = true;
+        }
+    }
+
+
+    changeDifficulty = () => {
+        if (this.difficulty == "Normal") {
+            this.spawnRate = 150;
+            this.difficulty = "Hard";
+        }
+        else {
+            this.spawnRate = 300;
+            this.difficulty = "Normal";
+        }
     }
 
     startGame = () => {  // rozpoczęcie gry
@@ -126,6 +219,7 @@ class Game { // klasa gry
 
             if (delta > interval) {
                 this.updateGame();
+                this.titleScreen();
                 then = now - (delta % interval);
             }
         }
@@ -138,15 +232,40 @@ class Game { // klasa gry
     };
 
     updateGame = () => { // aktualizowanie gry
-        this.drawBackgrounds();
-        this.drawLilies();
-        this.drawTrains();
-        this.drawCars();
-        this.drawPlayer();
-        this.checkMove();
-        this.ctx.fillStyle = "white";
-        this.ctx.font = "20px Verdana";
-        this.ctx.fillText("Score: " + this.score, 80, 55);
+        this.gameOver();
+        if (!this.isOver) {
+            this.drawBackgrounds();
+            this.drawLilies();
+            this.drawTrains();
+            this.drawCars();
+            this.drawPlayer();
+            this.checkMove();
+            this.checkWallsCollision();
+            this.checkHighscore();
+            this.ctx.fillStyle = "white";
+            this.ctx.font = "20px Verdana";
+            this.ctx.fillText("Score: " + this.score, 80, 55);
+        }
+    };
+
+    gameOver = () => { // funkcja kończąca grę
+        if (this.isOver) {
+            this.clearCanvas();
+            this.ctx.drawImage(this.background, 0, 0);
+            // wyswietlanie komunikatu końcowego
+            if (this.difficulty == "Normal") {
+                this.ctx.fillStyle = "white";
+            }
+            else
+                this.ctx.fillStyle = "red";
+            this.ctx.font = "20px Verdana";
+            this.ctx.shadowColor = "black";
+            this.ctx.shadowBlur = 7;
+            this.ctx.fillText("Difficulty: " + this.difficulty, this.canvas.width / 2.5, this.canvas.height / 2 - 100);
+            this.ctx.fillText("Score: " + this.score, this.canvas.width / 2.5, this.canvas.height / 2 - 70);
+            this.ctx.fillText("High score: " + this.getHighScore(), this.canvas.width / 2.5, this.canvas.height / 2 - 40);
+            this.ctx.fillText("Press Enter to restart", this.canvas.width / 2.5, this.canvas.height / 2 - 10);
+        }
     };
 
     drawPlayer = () => { // rysowanie postaci gracza oraz jej fizyka
@@ -180,7 +299,7 @@ class Game { // klasa gry
                 this.addBackgrounds(); // dodawanie tła do tablicy
             }
             // hard difficulty 150 zamiast 300
-            if (background.y % 300 == 0) {
+            if (background.y % this.spawnRate == 0) {
                 this.getRandomObstacle();
             }
         });
@@ -208,8 +327,6 @@ class Game { // klasa gry
             x1 + 56 == x2 || x1 - 8 == x2 || x1 - 72 == x2 || x1 + 120 == x2 || x1 - 200 == x2
             || x1 - 136 == x2 || x1 - 264 == x2 || x1 + 248 == x2 || x1 + 184 == x2 // niepożądane lokalizacje lilii
         )
-        console.log("x1: " + x1);
-        console.log("x2: " + x2);
         this.lilies.push({ // tablica z przeszkodami
             floating: {
                 img: this.lilyFloatingImg,
@@ -250,10 +367,12 @@ class Game { // klasa gry
 
             if (
                 !((this.player.x == lily.floating.x1 - 2 || this.player.x == lily.floating.x2 - 2))
-                && (this.player.y == lily.floating.y - 2)
+                && (this.player.y == lily.floating.y - 4
+
+                )
             ) {
                 console.log("ŚMIERĆ RZEKA");
-                this.restartGame();
+                this.isOver = true;
             }
 
             if (this.player.y > lily.floating.y - 34 && this.player.y < lily.floating.y + 32) {
@@ -340,7 +459,7 @@ class Game { // klasa gry
 
                     ) {
                         console.log("ŚMIERĆ POCIĄG");
-                        this.restartGame();
+                        this.isOver = true;
                     }
                 }
             }
@@ -348,14 +467,15 @@ class Game { // klasa gry
                 this.trains.shift(); // usuwanie przeszkód z tablicy
             }
 
-            console.log("player: " + this.player.y);
-            console.log(train.track.y);
+
             if (this.player.y > train.track.y - 34 && this.player.y < train.track.y + 32) { // jeżeli postać jest blisko pola pociągu ale nie jest w calosci to go przeteleportuj na pole
                 this.player.y = train.track.y;
             }
 
         });
     };
+
+
 
     addCars = () => { // tworzenie przeszkod
         let x = this.canvas.width - this.carDownImg.width;
@@ -412,14 +532,14 @@ class Game { // klasa gry
                 && ((this.player.y == car.down.y))
             ) {
                 console.log("ŚMIERĆ DOWN");
-                this.restartGame();
+                this.isOver = true;
             }
             if (
                 ((this.player.x + this.player.width * 2 >= car.up.x) && (this.player.x < car.up.x + car.up.width / 2))
                 && ((this.player.y == car.up.y - 64))
             ) {
                 console.log("ŚMIERĆ TOP"); // trzeba zrobic Y
-                this.restartGame();
+                this.isOver = true;
             }
             if (this.player.y > car.down.y - 44 && this.player.y < car.down.y + 42) {
                 this.player.y = car.down.y;
@@ -440,11 +560,16 @@ class Game { // klasa gry
 
     restartGame = () => { // restartowanie gry
         this.score = 0;
-        this.player.y = this.canvas.height - this.playerImg.height * 2 - 128;
+        this.isStarted = true;
+        this.isOver = false;
+        this.player.x = this.playerStartX;
+        this.player.y = this.playerStartY;
+        this.isOver = false;
         this.backgrounds = [];
         this.lilies = [];
         this.trains = [];
         this.cars = [];
+        this.blockDown = false;
         this.addBackgrounds();
         this.getRandomObstacle();
         this.gameSpeed = 3;
