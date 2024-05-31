@@ -54,6 +54,12 @@ class Game { // klasa gry
         this.carStreetImg = new Image();
         this.carStreetImg.src = "img/cars/street.png";
 
+        this.randomObstacles = [
+            this.addLilies,
+            this.addTrains,
+            this.addCars
+        ];
+
         this.player = {
             width: this.playerImg.width * 0.5,
             height: this.playerImg.height * 0.5,
@@ -62,16 +68,9 @@ class Game { // klasa gry
 
         };
 
-        this.startGame();
+        this.setFramerate();
     };
 
-    createRandomArray = () => {
-        this.randomObstacles = [
-            this.addLilies,
-            this.addTrains,
-            this.addCars
-        ];
-    }
     titleScreen = () => { // ekran tytułowy gry
         if (!this.isStarted) { // wyświetlanie ekranu tytułowego dopóki gracz nie wciśnie Enter
             this.clearCanvas();
@@ -82,9 +81,9 @@ class Game { // klasa gry
             else
                 this.ctx.fillStyle = "red";
             this.ctx.font = "20px Verdana";
-            this.ctx.fillText("Difficulty: " + this.difficulty, this.canvas.width / 2.5, this.canvas.height / 2 - 70);
-            this.ctx.fillText("High score: ", this.canvas.width / 2.5, this.canvas.height / 2 - 40);
-            this.ctx.fillText("Press Enter to start", this.canvas.width / 2.5, this.canvas.height / 2 - 10);
+            this.ctx.fillText("Difficulty: " + this.difficulty, this.canvas.width / 2.5, this.canvas.height / 2 + 40);
+            this.ctx.fillText("High score: " + this.getHighScore(), this.canvas.width / 2.5, this.canvas.height / 2);
+            this.ctx.fillText("Press Enter to start", this.canvas.width / 2.5, this.canvas.height / 2 - 40);
         }
     };
 
@@ -128,7 +127,7 @@ class Game { // klasa gry
         }
     }
 
-    checkMove = () => {
+    setControls = () => {
         document.addEventListener(
             "keydown",
             (e) => {
@@ -138,7 +137,6 @@ class Game { // klasa gry
                 }
                 switch (e.key) {
                     case "ArrowDown":
-
                         this.player.y += 64;
                         this.playerImg.src = "img/player/playerdown.png";
                         break;
@@ -161,13 +159,9 @@ class Game { // klasa gry
                         this.restartGame();
                         break;
                     case "e":
-                        if (this.isOver) {
-                            this.changeDifficulty();
-                        }
-                        break;
                     case "E":
-                        if (this.isOver) {
-                                this.changeDifficulty();
+                        if (!this.isStarted || this.isOver) {
+                            this.changeDifficulty();
                         }
                         break;
                     default:
@@ -204,7 +198,7 @@ class Game { // klasa gry
         }
     }
 
-    startGame = () => {  // rozpoczęcie gry
+    setFramerate = () => {  // rozpoczęcie gry
         // ustawienie częstotliwości wyswietlania klatek
         let framerate = 30;
         let now;
@@ -225,21 +219,26 @@ class Game { // klasa gry
         }
         update();
 
-        this.addBackgrounds();
-        this.createRandomArray();
-        this.getRandomObstacle();
-
+        this.startGame();
     };
+
+    startGame = () => {
+        this.setControls();
+        if (this.isStarted) {
+            this.addBackgrounds();
+            this.getRandomObstacle();
+        }
+    }
 
     updateGame = () => { // aktualizowanie gry
         this.gameOver();
+        console.log(this.difficulty);
         if (!this.isOver) {
             this.drawBackgrounds();
             this.drawLilies();
             this.drawTrains();
             this.drawCars();
             this.drawPlayer();
-            this.checkMove();
             this.checkWallsCollision();
             this.checkHighscore();
             this.ctx.fillStyle = "white";
@@ -259,12 +258,12 @@ class Game { // klasa gry
             else
                 this.ctx.fillStyle = "red";
             this.ctx.font = "20px Verdana";
-            this.ctx.shadowColor = "black";
-            this.ctx.shadowBlur = 7;
-            this.ctx.fillText("Difficulty: " + this.difficulty, this.canvas.width / 2.5, this.canvas.height / 2 - 100);
-            this.ctx.fillText("Score: " + this.score, this.canvas.width / 2.5, this.canvas.height / 2 - 70);
-            this.ctx.fillText("High score: " + this.getHighScore(), this.canvas.width / 2.5, this.canvas.height / 2 - 40);
-            this.ctx.fillText("Press Enter to restart", this.canvas.width / 2.5, this.canvas.height / 2 - 10);
+
+            this.ctx.fillText("Press Enter to restart", this.canvas.width / 2.5, this.canvas.height / 2 - 60);
+
+            this.ctx.fillText("Score: " + this.score, this.canvas.width / 2.5, this.canvas.height / 2 - 20);
+            this.ctx.fillText("High score: " + this.getHighScore(), this.canvas.width / 2.5, this.canvas.height / 2 + 20);
+            this.ctx.fillText("Difficulty: " + this.difficulty, this.canvas.width / 2.5, this.canvas.height / 2 + 60);
         }
     };
 
@@ -367,9 +366,7 @@ class Game { // klasa gry
 
             if (
                 !((this.player.x == lily.floating.x1 - 2 || this.player.x == lily.floating.x2 - 2))
-                && (this.player.y == lily.floating.y - 4
-
-                )
+                && (this.player.y == lily.floating.y - 4)
             ) {
                 console.log("ŚMIERĆ RZEKA");
                 this.isOver = true;
@@ -455,7 +452,7 @@ class Game { // klasa gry
                     if (
 
                         ((this.player.x + this.player.width >= train.riding.x) && (this.player.x < train.riding.x + train.riding.width))
-                        && ((this.player.y >= train.track.y) && (this.player.y + 2 < train.track.y + train.riding.height))
+                        && ((this.player.y >= train.track.y) && (this.player.y + 16 < train.track.y + train.riding.height))
 
                     ) {
                         console.log("ŚMIERĆ POCIĄG");
@@ -535,10 +532,10 @@ class Game { // klasa gry
                 this.isOver = true;
             }
             if (
-                ((this.player.x + this.player.width * 2 >= car.up.x) && (this.player.x < car.up.x + car.up.width / 2))
+                ((this.player.x + this.player.width * 2 >= car.up.x) && (this.player.x < car.up.x + car.up.width))
                 && ((this.player.y == car.up.y - 64))
             ) {
-                console.log("ŚMIERĆ TOP"); // trzeba zrobic Y
+                console.log("ŚMIERĆ UP"); // trzeba zrobic Y
                 this.isOver = true;
             }
             if (this.player.y > car.down.y - 44 && this.player.y < car.down.y + 42) {
