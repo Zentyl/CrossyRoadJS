@@ -29,14 +29,14 @@ class Game { // klasa gry
         this.background.src = "img/background.png"; // tło
 
         this.playerImg = new Image();
-        this.playerImg.src = "img/player/playerup.png"; // postać gracza
+        this.playerImg.src = "img/player/up.png"; // postać gracza
         this.playerStartX = this.canvas.width / 2 - this.playerImg.width;
         this.playerStartY = this.canvas.height - this.playerImg.height * 2 - 128;
 
         this.lilyRiverImg = new Image();
         this.lilyRiverImg.src = "img/lily/river.png";
-        this.lilyFloatingImg = new Image();
-        this.lilyFloatingImg.src = "img/lily/floating.png";
+        this.lilyPadImg = new Image();
+        this.lilyPadImg.src = "img/lily/pad.png";
         this.lilySunkenImg = new Image();
         this.lilySunkenImg.src = "img/lily/sunken.png";
         this.trainRidingImg = new Image();
@@ -51,8 +51,10 @@ class Game { // klasa gry
         this.carDownImg.src = "img/cars/down.png"; // przeszkoda
         this.carUpImg = new Image();
         this.carUpImg.src = "img/cars/up.png"; // przeszkoda
-        this.carStreetImg = new Image();
-        this.carStreetImg.src = "img/cars/street.png";
+        this.carDownStreet = new Image();
+        this.carDownStreet.src = "img/cars/downstreet.png";
+        this.carUpStreet = new Image();
+        this.carUpStreet.src = "img/cars/upstreet.png";
 
         this.randomObstacles = [
             this.addLilies,
@@ -65,7 +67,6 @@ class Game { // klasa gry
             height: this.playerImg.height * 0.5,
             x: this.playerStartX,
             y: this.playerStartY
-
         };
 
         this.setFramerate();
@@ -81,9 +82,11 @@ class Game { // klasa gry
             else
                 this.ctx.fillStyle = "red";
             this.ctx.font = "20px Verdana";
-            this.ctx.fillText("Difficulty: " + this.difficulty, this.canvas.width / 2.5, this.canvas.height / 2 + 40);
-            this.ctx.fillText("High score: " + this.getHighScore(), this.canvas.width / 2.5, this.canvas.height / 2);
-            this.ctx.fillText("Press Enter to start", this.canvas.width / 2.5, this.canvas.height / 2 - 40);
+            this.ctx.fillText("Press Enter to start", this.canvas.width / 2.5, this.canvas.height / 2 - 60);
+            this.ctx.fillText("High score: " + this.getHighScore(), this.canvas.width / 2.5, this.canvas.height / 2 - 20);
+            this.ctx.fillText("Difficulty: " + this.difficulty, this.canvas.width / 2.5, this.canvas.height / 2 + 20);
+            this.ctx.fillText("Press C to change difficulty", this.canvas.width / 2.5, this.canvas.height / 2 + 60);
+
         }
     };
 
@@ -137,29 +140,36 @@ class Game { // klasa gry
                 }
                 switch (e.key) {
                     case "ArrowDown":
+                    case "s":
+                    case "S":
                         this.player.y += 64;
-                        this.playerImg.src = "img/player/playerdown.png";
+                        this.playerImg.src = "img/player/down.png";
                         break;
 
                     case "ArrowUp":
+                    case "w":
+                    case "W":
                         this.player.y -= 64;
-                        this.playerImg.src = "img/player/playerup.png";
+                        this.playerImg.src = "img/player/up.png";
                         break;
                     case "ArrowLeft":
-
+                    case "a":
+                    case "A":
                         this.player.x -= 64;
-                        this.playerImg.src = "img/player/playerleft.png";
+                        this.playerImg.src = "img/player/left.png";
                         break;
 
                     case "ArrowRight":
+                    case "d":
+                    case "D":
                         this.player.x += 64;
-                        this.playerImg.src = "img/player/playerright.png";
+                        this.playerImg.src = "img/player/right.png";
                         break;
                     case "Enter":
                         this.restartGame();
                         break;
-                    case "e":
-                    case "E":
+                    case "c":
+                    case "C":
                         if (!this.isStarted || this.isOver) {
                             this.changeDifficulty();
                         }
@@ -259,11 +269,11 @@ class Game { // klasa gry
                 this.ctx.fillStyle = "red";
             this.ctx.font = "20px Verdana";
 
-            this.ctx.fillText("Press Enter to restart", this.canvas.width / 2.5, this.canvas.height / 2 - 60);
-
-            this.ctx.fillText("Score: " + this.score, this.canvas.width / 2.5, this.canvas.height / 2 - 20);
-            this.ctx.fillText("High score: " + this.getHighScore(), this.canvas.width / 2.5, this.canvas.height / 2 + 20);
-            this.ctx.fillText("Difficulty: " + this.difficulty, this.canvas.width / 2.5, this.canvas.height / 2 + 60);
+            this.ctx.fillText("Press Enter to restart", this.canvas.width / 2.5, this.canvas.height / 2 - 80);
+            this.ctx.fillText("Score: " + this.score, this.canvas.width / 2.5, this.canvas.height / 2 - 40);
+            this.ctx.fillText("High score: " + this.getHighScore(), this.canvas.width / 2.5, this.canvas.height / 2);
+            this.ctx.fillText("Difficulty: " + this.difficulty, this.canvas.width / 2.5, this.canvas.height / 2 + 40);
+            this.ctx.fillText("Press C to change difficulty", this.canvas.width / 2.5, this.canvas.height / 2 + 80);
         }
     };
 
@@ -316,7 +326,7 @@ class Game { // klasa gry
             do {
                 randomPosition = (Math.floor(Math.random() * 14 / 2) * 2);
             } while (randomPosition == 0)
-            x1 = this.canvas.width - this.lilyFloatingImg.width * randomPosition;
+            x1 = this.canvas.width - this.lilyPadImg.width * randomPosition;
             y = 64 * (-1);
             x2 = x1 - possibleX2[Math.floor(Math.random() * possibleX2.length)];
             if (x2 <= 0) {
@@ -327,14 +337,14 @@ class Game { // klasa gry
             || x1 - 136 == x2 || x1 - 264 == x2 || x1 + 248 == x2 || x1 + 184 == x2 // niepożądane lokalizacje lilii
         )
         this.lilies.push({ // tablica z przeszkodami
-            floating: {
-                img: this.lilyFloatingImg,
+            pad: {
+                img: this.lilyPadImg,
                 x1: x1,
                 y: y,
 
                 x2: x2,
-                width: this.lilyFloatingImg.width,
-                height: this.lilyFloatingImg.height
+                width: this.lilyPadImg.width,
+                height: this.lilyPadImg.height
             },
             river: {
                 img: this.lilyRiverImg,
@@ -351,13 +361,13 @@ class Game { // klasa gry
     drawLilies = () => { // rysowanie przeszkód
         const liliesToDraw = [...this.lilies]; // przeszkody oczekujace na narysowanie
         liliesToDraw.forEach(lily => {
-            this.ctx.drawImage(lily.river.img, 0, lily.floating.y); // prawa
-            this.ctx.drawImage(lily.floating.img, lily.floating.x1, lily.floating.y);
-            this.ctx.drawImage(lily.floating.img, lily.floating.x2, lily.floating.y);
+            this.ctx.drawImage(lily.river.img, 0, lily.pad.y); // prawa
+            this.ctx.drawImage(lily.pad.img, lily.pad.x1, lily.pad.y);
+            this.ctx.drawImage(lily.pad.img, lily.pad.x2, lily.pad.y);
 
-            lily.floating.y += this.gameSpeed;
+            lily.pad.y += this.gameSpeed;
 
-            if (this.player.y < lily.floating.y - 2) {
+            if (this.player.y < lily.pad.y - 2) {
                 if (lily.point) {
                     this.score++
                     lily.point = false;
@@ -365,18 +375,18 @@ class Game { // klasa gry
             }
 
             if (
-                !((this.player.x == lily.floating.x1 - 2 || this.player.x == lily.floating.x2 - 2))
-                && (this.player.y == lily.floating.y - 4)
+                !((this.player.x == lily.pad.x1 - 2 || this.player.x == lily.pad.x2 - 2))
+                && (this.player.y == lily.pad.y - 4)
             ) {
                 console.log("ŚMIERĆ RZEKA");
                 this.isOver = true;
             }
 
-            if (this.player.y > lily.floating.y - 34 && this.player.y < lily.floating.y + 32) {
-                this.player.y = lily.floating.y - 4;
+            if (this.player.y > lily.pad.y - 34 && this.player.y < lily.pad.y + 32) {
+                this.player.y = lily.pad.y - 4;
             }
 
-            if (lily.floating.y == this.canvas.height + lily.floating.height) {
+            if (lily.pad.y == this.canvas.height + lily.pad.height) {
                 this.lilies.shift();
             }
 
@@ -493,12 +503,19 @@ class Game { // klasa gry
                 width: this.carUpImg.width,
                 height: this.carUpImg.height
             },
-            street: {
-                img: this.carStreetImg,
+            downStreet: {
+                img: this.carDownStreet,
                 x: x,
                 y: y,
-                width: this.carStreetImg.width,
-                height: this.carStreetImg.height
+                width: this.carDownStreet.width,
+                height: this.carDownStreet.height
+            },
+            upStreet: {
+                img: this.carUpStreet,
+                x: x,
+                y: y,
+                width: this.carUpStreet.width,
+                height: this.carUpStreet.height
             },
             point: true
         });
@@ -507,10 +524,10 @@ class Game { // klasa gry
     drawCars = () => { // rysowanie przeszkód
         const carsToDraw = [...this.cars]; // przeszkody oczekujace na narysowanie
         carsToDraw.forEach(car => {
-            this.ctx.drawImage(car.street.img, 0, car.down.y); // prawa
+            this.ctx.drawImage(car.downStreet.img, 0, car.down.y); // prawa
             this.ctx.drawImage(car.down.img, car.down.x, car.down.y);
-            this.ctx.drawImage(car.street.img, 0, car.up.y - car.street.height); // lewa
-            this.ctx.drawImage(car.up.img, car.up.x, car.up.y - car.street.height);
+            this.ctx.drawImage(car.upStreet.img, 0, car.up.y - car.upStreet.height); // lewa
+            this.ctx.drawImage(car.up.img, car.up.x, car.up.y - car.upStreet.height);
 
             car.down.x += this.carSpeed;
             car.down.y += this.gameSpeed;
