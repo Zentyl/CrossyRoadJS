@@ -16,6 +16,7 @@ class Game { // klasa gry
     isOver = false; // zmienna sprawdzająca czy gra zostala skończona
     spawnRate = 300;
     difficulty = "Normal";
+    isMusic = false;
 
 
     init = () => { // konstruktor
@@ -82,10 +83,10 @@ class Game { // klasa gry
             else
                 this.ctx.fillStyle = "red";
             this.ctx.font = "20px Verdana";
-            this.ctx.fillText("Press Enter to start", this.canvas.width / 2.5, this.canvas.height / 2 - 60);
-            this.ctx.fillText("High score: " + this.getHighScore(), this.canvas.width / 2.5, this.canvas.height / 2 - 20);
-            this.ctx.fillText("Difficulty: " + this.difficulty, this.canvas.width / 2.5, this.canvas.height / 2 + 20);
-            this.ctx.fillText("Press C to change difficulty", this.canvas.width / 2.5, this.canvas.height / 2 + 60);
+            this.ctx.fillText("Press Enter to start", this.canvas.width / 2.75, this.canvas.height / 2 - 60);
+            this.ctx.fillText("High score: " + this.getHighScore(), this.canvas.width / 2.75, this.canvas.height / 2 - 20);
+            this.ctx.fillText("Difficulty: " + this.difficulty, this.canvas.width / 2.75, this.canvas.height / 2 + 20);
+            this.ctx.fillText("Press C to change difficulty", this.canvas.width / 2.75, this.canvas.height / 2 + 60);
 
         }
     };
@@ -269,11 +270,11 @@ class Game { // klasa gry
                 this.ctx.fillStyle = "red";
             this.ctx.font = "20px Verdana";
 
-            this.ctx.fillText("Press Enter to restart", this.canvas.width / 2.5, this.canvas.height / 2 - 80);
-            this.ctx.fillText("Score: " + this.score, this.canvas.width / 2.5, this.canvas.height / 2 - 40);
-            this.ctx.fillText("High score: " + this.getHighScore(), this.canvas.width / 2.5, this.canvas.height / 2);
-            this.ctx.fillText("Difficulty: " + this.difficulty, this.canvas.width / 2.5, this.canvas.height / 2 + 40);
-            this.ctx.fillText("Press C to change difficulty", this.canvas.width / 2.5, this.canvas.height / 2 + 80);
+            this.ctx.fillText("Press Enter to restart", this.canvas.width / 2.75, this.canvas.height / 2 - 80);
+            this.ctx.fillText("Score: " + this.score, this.canvas.width / 2.75, this.canvas.height / 2 - 40);
+            this.ctx.fillText("High score: " + this.getHighScore(), this.canvas.width / 2.75, this.canvas.height / 2);
+            this.ctx.fillText("Difficulty: " + this.difficulty, this.canvas.width / 2.75, this.canvas.height / 2 + 40);
+            this.ctx.fillText("Press C to change difficulty", this.canvas.width / 2.75, this.canvas.height / 2 + 80);
         }
     };
 
@@ -369,7 +370,8 @@ class Game { // klasa gry
 
             if (this.player.y < lily.pad.y - 2) {
                 if (lily.point) {
-                    this.score++
+                    this.score++;
+                    this.playSoundScore();
                     lily.point = false;
                 }
             }
@@ -379,6 +381,7 @@ class Game { // klasa gry
                 && (this.player.y == lily.pad.y - 4)
             ) {
                 console.log("ŚMIERĆ RZEKA");
+                this.playSoundLilyOver();
                 this.isOver = true;
             }
 
@@ -442,7 +445,8 @@ class Game { // klasa gry
 
             if (this.player.y < train.track.y - 2) {
                 if (train.point) {
-                    this.score++
+                    this.score++;
+                    this.playSoundScore();
                     train.point = false;
                 }
             }
@@ -466,6 +470,7 @@ class Game { // klasa gry
 
                     ) {
                         console.log("ŚMIERĆ POCIĄG");
+                        this.playSoundGameOver();
                         this.isOver = true;
                     }
                 }
@@ -536,7 +541,8 @@ class Game { // klasa gry
 
             if (this.player.y < car.up.y - 64) {
                 if (car.point) {
-                    this.score++
+                    this.score++;
+                    this.playSoundScore();
                     car.point = false;
                 }
             }
@@ -546,6 +552,7 @@ class Game { // klasa gry
                 && ((this.player.y == car.down.y))
             ) {
                 console.log("ŚMIERĆ DOWN");
+                this.playSoundGameOver();
                 this.isOver = true;
             }
             if (
@@ -553,6 +560,7 @@ class Game { // klasa gry
                 && ((this.player.y == car.up.y - 64))
             ) {
                 console.log("ŚMIERĆ UP"); // trzeba zrobic Y
+                this.playSoundGameOver();
                 this.isOver = true;
             }
             if (this.player.y > car.down.y - 44 && this.player.y < car.down.y + 42) {
@@ -572,7 +580,40 @@ class Game { // klasa gry
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
     };
 
+    playMusic = () => { // uruchom muzykę
+        let music = new Audio();
+        music.src = "audio/music.mp3";
+        music.addEventListener("ended", function () { // jeśli muzyka się skończyła, uruchom ją ponownie
+            music.currentTime = 0;
+            this.isMusic = false;
+            music.play();
+        });
+        music.play();
+        this.isMusic = true; // muzyka jest uruchomiona
+    };
+
+    playSoundGameOver = () => { // włącz dźwięk skoku
+        let playSound = new Audio();
+        playSound.src = "audio/gameover.mp3";
+        playSound.play();
+    };
+
+    playSoundLilyOver = () => { // włącz dźwięk skoku
+        let playSound = new Audio();
+        playSound.src = "audio/splash.mp3";
+        playSound.play();
+    };
+
+    playSoundScore = () => { // włącz dźwięk skoku
+        let playSound = new Audio();
+        playSound.src = "audio/point.mp3";
+        playSound.play();
+    };
+
     restartGame = () => { // restartowanie gry
+        if (!this.isMusic) { // jeśli nie gra muzyka, uruchom muzykę
+            this.playMusic();
+        }
         this.score = 0;
         this.isStarted = true;
         this.isOver = false;

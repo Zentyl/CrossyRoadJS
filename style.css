@@ -6,14 +6,14 @@ body {
     text-align: end;
     font-size: 1rem;
     font-family: Verdana;
-    color: #195e86;
+    color: #2d6b68;
     margin: 0;
     display: flex;
     flex-direction: column;
     height: 95vh;
     justify-content: center;
     align-items: center;
-    background-color: #092230;
+    background-color: #012622;
 }
 
 .title {
@@ -27,4 +27,6 @@ body {
 
 .canvas {
     width: 100%;
+    font-family: 'Courier', monospace;
+-webkit-font-smoothing : none;
 }
