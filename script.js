@@ -38,10 +38,13 @@ class Game { // klasa gry
         this.background = new Image(); // Tło
         this.background.src = "img/background.png";
 
-        this.logo = new Image(); // Logo
-        this.logo.src = "img/logo.png";
-        this.logoHard = new Image(); // Logo gdy poziom trudności to "Hard"
-        this.logoHard.src = "img/logohard.png";
+        this.logoImg = new Image(); // Logo
+        this.logoImg.src = "img/logo.png";
+        this.logoHardImg = new Image(); // Logo gdy poziom trudności to "Hard"
+        this.logoHardImg.src = "img/logohard.png";
+
+        this.controlsImg = new Image();
+        this.controlsImg.src = "img/controls.png";
 
         this.playerImg = new Image(); // Grafika gracza
         this.playerImg.src = "img/player/up.png";
@@ -136,24 +139,26 @@ class Game { // klasa gry
         if (!this.isStarted) { // Wyświetlanie ekranu tytułowego dopóki gracz nie wciśnie Enter
             this.clearCanvas();
             this.ctx.drawImage(this.background, 0, 0);
-            this.ctx.drawImage(this.logo, this.canvas.width / 4.75, this.canvas.height / 4.5);
 
             if (this.difficulty == "Normal") {
-                this.ctx.drawImage(this.logo, this.canvas.width / 4.75, this.canvas.height / 4.5);
+                this.ctx.drawImage(this.logoImg, this.canvas.width / 4.75, this.canvas.height / 14);
                 this.ctx.fillStyle = "white";
             }
 
             else { // Jeżeli poziom trudności to "Hard", wyświetl logo oraz napisy na czerwono
-                this.ctx.drawImage(this.logoHard, this.canvas.width / 4.75, this.canvas.height / 4.5);
+                this.ctx.drawImage(this.logoHardImg, this.canvas.width / 4.75, this.canvas.height / 4.5);
                 this.ctx.fillStyle = "red";
             }
 
-            this.ctx.font = "20px Verdana";
-            this.ctx.fillText("Press Enter to start", this.canvas.width / 2.75, this.canvas.height / 2 - 10);
-            this.ctx.fillText("High score: " + this.getHighScore(), this.canvas.width / 2.75, this.canvas.height / 2 + 30);
-            this.ctx.fillText("Difficulty: " + this.difficulty, this.canvas.width / 2.75, this.canvas.height / 2 + 70);
-            this.ctx.fillText("Press C to change difficulty", this.canvas.width / 2.75, this.canvas.height / 2 + 110);
 
+            this.ctx.font = "20px Verdana";
+            this.ctx.fillText("Press Enter to start", this.canvas.width / 2.75, this.canvas.height / 2 - 110);
+            this.ctx.fillText("High score: " + this.getHighScore(), this.canvas.width / 2.75, this.canvas.height / 2 - 70);
+            this.ctx.fillText("Difficulty: " + this.difficulty, this.canvas.width / 2.75, this.canvas.height / 2 - 30);
+            this.ctx.fillText("Press C to change difficulty", this.canvas.width / 2.75, this.canvas.height / 2 + 10);
+
+            this.ctx.fillText("Controls:", this.canvas.width / 2.25, this.canvas.height / 2 + 70);
+            this.ctx.drawImage(this.controlsImg, this.canvas.width / 3.35, this.canvas.height*0.7);
         }
     };
 
@@ -224,9 +229,11 @@ class Game { // klasa gry
                         this.playerImg.src = "img/player/right.png";
                         break;
                     case "Enter":
-                        this.startGame();
+                        if (!this.isStarted || this.isOver) {
+                            this.startGame();
+                        }
                         break;
-
+                    
                     case "c":
                     case "C":
                         if (!this.isStarted || this.isOver) {
@@ -234,6 +241,11 @@ class Game { // klasa gry
                         } // Zmiana poziomu trudności jest możliwa tylko podczas ekranu głównego i ekranu śmierci 
                         break;
 
+                    case "Escape":
+                        if (this.isStarted && !this.isOver) {
+                            this.isStarted = false;
+                            this.isOver = true;
+                        }
                     default:
                         return;
                 }
@@ -366,7 +378,7 @@ class Game { // klasa gry
                 this.backgrounds.shift(); // Usuwanie tła z tablicy teł
                 this.addBackgrounds(); // Dodawanie tła do tablicy teł
             }
-            
+
             // Losowanie i tworzenie obiektu na podstawie pozycji tła oraz ustawionej częstotliwości pojawiania się obiektów
             if (background.y % this.spawnRate == 0) {
                 this.getRandomObstacle();
@@ -399,11 +411,11 @@ class Game { // klasa gry
             do {
                 randomPosition = (Math.floor(Math.random() * 14 / 2) * 2);
             } while (randomPosition == 0) // Losowanie pozycji na osi X pierwszej lilii dopóki ta będzie różna od 0
-            
+
             x1 = this.canvas.width - this.lilyPadImg.width * randomPosition;
             y = 64 * (-1);
             x2 = x1 - possibleX2[Math.floor(Math.random() * possibleX2.length)]; // Losowanie pozycji drugiej lilii na osi X
-            
+
             if (x2 <= 0) {
                 x2 *= (-1);
             }
@@ -593,7 +605,7 @@ class Game { // klasa gry
     Typ zwracany: brak
     Informacje: Funkcja tworząca parę samochodów oraz ich pola ruchu
     Autor: 6186
-    **********************************************/    
+    **********************************************/
     addCars = () => { // tworzenie przeszkod
         let x = this.canvas.width - this.carDownImg.width;
         let y = 64 * (-1);
@@ -806,12 +818,12 @@ class Game { // klasa gry
 
             // wyswietlanie komunikatu końcowego
             if (this.difficulty == "Normal") {
-                this.ctx.drawImage(this.logo, this.canvas.width / 4.75, this.canvas.height / 4.5);
+                this.ctx.drawImage(this.logoImg, this.canvas.width / 4.75, this.canvas.height / 4.5);
                 this.ctx.fillStyle = "white";
             }
 
             else {
-                this.ctx.drawImage(this.logoHard, this.canvas.width / 4.75, this.canvas.height / 4.5);
+                this.ctx.drawImage(this.logoHardImg, this.canvas.width / 4.75, this.canvas.height / 4.5);
                 this.ctx.fillStyle = "red";
             }
             this.ctx.font = "20px Verdana";
