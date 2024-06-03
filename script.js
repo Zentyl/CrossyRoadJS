@@ -43,8 +43,10 @@ class Game { // klasa gry
         this.logoHardImg = new Image(); // Logo gdy poziom trudności to "Hard"
         this.logoHardImg.src = "img/logohard.png";
 
-        this.controlsImg = new Image();
+        this.controlsImg = new Image();  // Grafika przycisków do sterowania graczem
         this.controlsImg.src = "img/controls.png";
+        this.controlsHardImg = new Image();  // Grafika przycisków do sterowania graczem gdy poziom trudności to "Hard"
+        this.controlsHardImg.src = "img/controlshard.png";
 
         this.playerImg = new Image(); // Grafika gracza
         this.playerImg.src = "img/player/up.png";
@@ -143,11 +145,15 @@ class Game { // klasa gry
             if (this.difficulty == "Normal") {
                 this.ctx.drawImage(this.logoImg, this.canvas.width / 4.75, this.canvas.height / 14);
                 this.ctx.fillStyle = "white";
+                this.ctx.fillText("Controls:", this.canvas.width / 2.25, this.canvas.height / 2 + 70);
+                this.ctx.drawImage(this.controlsImg, this.canvas.width / 3.35, this.canvas.height*0.7);
             }
 
             else { // Jeżeli poziom trudności to "Hard", wyświetl logo oraz napisy na czerwono
-                this.ctx.drawImage(this.logoHardImg, this.canvas.width / 4.75, this.canvas.height / 4.5);
-                this.ctx.fillStyle = "red";
+                this.ctx.drawImage(this.logoHardImg, this.canvas.width / 4.75, this.canvas.height / 14);
+                this.ctx.fillStyle = "black";
+                this.ctx.fillText("Controls:", this.canvas.width / 2.25, this.canvas.height / 2 + 70);
+                this.ctx.drawImage(this.controlsHardImg, this.canvas.width / 3.35, this.canvas.height*0.7);
             }
 
 
@@ -157,8 +163,7 @@ class Game { // klasa gry
             this.ctx.fillText("Difficulty: " + this.difficulty, this.canvas.width / 2.75, this.canvas.height / 2 - 30);
             this.ctx.fillText("Press C to change difficulty", this.canvas.width / 2.75, this.canvas.height / 2 + 10);
 
-            this.ctx.fillText("Controls:", this.canvas.width / 2.25, this.canvas.height / 2 + 70);
-            this.ctx.drawImage(this.controlsImg, this.canvas.width / 3.35, this.canvas.height*0.7);
+
         }
     };
 
@@ -328,7 +333,7 @@ class Game { // klasa gry
             }
 
             else { // Wyświetlanie score w kolorze czerwonym w przypadku poziomu trudności "Hard"
-                this.ctx.fillStyle = "red";
+                this.ctx.fillStyle = "black";
             }
             this.ctx.font = "20px Verdana";
             this.ctx.fillText("Score: " + this.score, 40, 40);
@@ -824,7 +829,7 @@ class Game { // klasa gry
 
             else {
                 this.ctx.drawImage(this.logoHardImg, this.canvas.width / 4.75, this.canvas.height / 4.5);
-                this.ctx.fillStyle = "red";
+                this.ctx.fillStyle = "black";
             }
             this.ctx.font = "20px Verdana";
 
